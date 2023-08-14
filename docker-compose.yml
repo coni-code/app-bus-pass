@@ -1,0 +1,97 @@
+version: "3.7"
+services:
+    php:
+        labels:
+            version: $PHP_VERSION
+        build:
+            context: "./docker/php"
+            args:
+                PHP_VERSION: $PHP_VERSION
+                NODE_VERSION: $NODE_VERSION
+        environment:
+            COMPOSER_MEMORY_LIMIT: -1
+        networks:
+            - backend
+        working_dir: /usr/local/apache2/htdocs
+        volumes:
+            - .:/usr/local/apache2/htdocs
+            - ./docker/php/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+            - ./docker/php/conf.d/app.ini:/usr/local/etc/php/conf.d/app.ini
+        container_name: ${APP_NAME}_php
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        command:
+            - sh
+            - docker/php/docker-entrypoint.sh
+
+    apache:
+        labels:
+            version: $APACHE_VERSION
+        build:
+            context: "./docker/apache"
+            args:
+                APACHE_VERSION: $APACHE_VERSION
+        depends_on:
+            - php
+            - mysql
+        networks:
+            - frontend
+            - backend
+        ports:
+            - "443:443"
+        working_dir: /usr/local/apache2/htdocs
+        volumes:
+            - .:/usr/local/apache2/htdocs
+        container_name: ${APP_NAME}_apache
+
+    node:
+        labels:
+            version: $NODE_VERSION
+        build:
+            context: "./docker/node"
+            args:
+                NODE_VERSION: $NODE_VERSION
+        networks:
+            - backend
+#        ports:
+#            - "3000:3000"
+        working_dir: /usr/local/apache2/htdocs
+        volumes:
+            - .:/usr/local/apache2/htdocs
+        container_name: ${APP_NAME}_node
+        stop_grace_period: 0s
+        command:
+            - sh
+            - docker/node/docker-entrypoint.sh
+
+    mysql:
+        platform: linux/x86_64
+        image: mysql:5.7
+        restart: always
+        # Seems like not needed; leaving for quick revert
+        ports:
+            - "3306:3306"
+        volumes:
+            - data:/var/lib/mysql
+            # - ./docker/mysql/init:/docker-entrypoint-initdb.d
+        networks:
+            - backend
+        environment:
+            MYSQL_ROOT_PASSWORD: "$DB_ROOT_PASSWORD"
+            MYSQL_DATABASE: "$DB_NAME"
+            MYSQL_USER: "$DB_USERNAME"
+            MYSQL_PASSWORD: "$DB_PASSWORD"
+            MYSQL_INITDB_SKIP_TZINFO: "true"
+            TZ: Europe/London
+        container_name: ${APP_NAME}_mysql
+        # Disable the MySQL's strict mode (required for legacy projects)
+        command: mysqld --sql_mode="" --skip-name-resolve --innodb-use-native-aio=OFF ${DB_EXTRA_FLAGS}
+
+networks:
+    frontend:
+        driver: bridge
+    backend:
+        driver: bridge
+
+volumes:
+    data:
