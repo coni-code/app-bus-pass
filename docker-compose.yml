@@ -8,6 +8,8 @@ services:
             args:
                 PHP_VERSION: $PHP_VERSION
                 NODE_VERSION: $NODE_VERSION
+        depends_on:
+            - mysql
         environment:
             COMPOSER_MEMORY_LIMIT: -1
         networks:
