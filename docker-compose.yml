@@ -90,8 +90,10 @@ services:
         command: mysqld --sql_mode="" --skip-name-resolve --innodb-use-native-aio=OFF ${DB_EXTRA_FLAGS}
 
 networks:
-    frontend:
+    frontend: 
+        driver: bridge
     backend:
+        driver: bridge
 
 volumes:
     data:
