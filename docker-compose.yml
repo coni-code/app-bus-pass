@@ -8,6 +8,8 @@ services:
             args:
                 PHP_VERSION: $PHP_VERSION
                 NODE_VERSION: $NODE_VERSION
+        depends_on:
+            - mysql
         environment:
             COMPOSER_MEMORY_LIMIT: -1
         networks:
@@ -69,8 +71,8 @@ services:
         image: mysql:5.7
         restart: always
         # Seems like not needed; leaving for quick revert
-        ports:
-            - "3306:3306"
+        # ports:
+        #     - "3306:3306"
         volumes:
             - data:/var/lib/mysql
             # - ./docker/mysql/init:/docker-entrypoint-initdb.d
@@ -88,8 +90,10 @@ services:
         command: mysqld --sql_mode="" --skip-name-resolve --innodb-use-native-aio=OFF ${DB_EXTRA_FLAGS}
 
 networks:
-    frontend:
+    frontend: 
+        driver: bridge
     backend:
+        driver: bridge
 
 volumes:
     data:
