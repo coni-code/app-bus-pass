@@ -23,12 +23,8 @@ dphp() {
 }
 
 dconsole() {
-    php bin/console "$@"
+    dphp bin/console "$@"
 }
-
-# dconsole() {
-#     dexec -uwww-data "$(_find-cid php)" bin/console "$@"
-# }
 
 dcomposer() {
     dphp /usr/bin/composer "$@"

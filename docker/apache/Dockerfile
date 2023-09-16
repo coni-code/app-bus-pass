@@ -8,15 +8,14 @@ RUN apk update \
 COPY project.conf conf/project.conf
 RUN echo "Include conf/project.conf" >> conf/httpd.conf
 
-# Remove defautl host configuration
+# Remove default host configuration
 RUN sed -i \
     -e 's~^\(DocumentRoot \).*$~\1/usr/local/apache2/htdocs/public~' \
-    conf/httpd.conf
-RUN sed -i \
+    conf/httpd.conf \
     -e 's~^\(DocumentRoot \).*$~\1/usr/local/apache2/htdocs/public~' \
     conf/extra/httpd-ssl.conf
 
-# Turn on Apache extension
+# Turn on Apache extensions
 RUN sed -i \
     -e 's/^#\(LoadModule .*mod_deflate.so\)/\1/' \
     -e 's/^#\(LoadModule .*mod_proxy.so\)/\1/' \
